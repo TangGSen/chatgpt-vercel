@@ -138,6 +138,7 @@ export async function POST({ request }: APIEvent) {
             }
             try {
               const json = JSON.parse(data)
+              json['linsen'] ='linsen';
 //              const text = json.choices[0].delta?.content
               const queue = encoder.encode(JSON.stringify(json))
 //              const queue = encoder.encode(text)
