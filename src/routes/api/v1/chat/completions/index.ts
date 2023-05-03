@@ -137,10 +137,10 @@ export async function POST({ request }: APIEvent) {
               return
             }
             try {
-              const json = JSON.parse(data)
-              json['linsen'] ='linsen';
+//              const json = JSON.parse(data)
+//              json['linsen'] ='linsen';
 //              const text = json.choices[0].delta?.content
-              const queue = encoder.encode(JSON.stringify(json))
+              const queue = encoder.encode("data："+data+"\n")
 //              const queue = encoder.encode(text)
               controller.enqueue(queue)
             } catch (e) {
