@@ -169,7 +169,7 @@ export default function () {
       body: JSON.stringify({
         messages,
         key: store.globalSettings.APIKey || undefined,
-        temperature: store.sessionSettings.APITemperature,
+        temperature: 0.7,
         password: store.globalSettings.password,
         model: store.sessionSettings.APIModel
       }),
