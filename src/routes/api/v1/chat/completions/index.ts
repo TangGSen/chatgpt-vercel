@@ -4,6 +4,7 @@ import type { ChatMessage, Model } from "~/types"
 import { splitKeys, randomKey, fetchWithTimeout } from "~/utils"
 import { defaultEnv } from "~/env"
 import type { APIEvent } from "solid-start/api"
+import axios from 'axios'
 
 export const config = {
   runtime: "edge",
@@ -50,6 +51,21 @@ const timeout = isNaN(+process.env.TIMEOUT!)
 
 const passwordSet = process.env.PASSWORD || defaultEnv.PASSWORD
 
+//先查询用户的订单，以及是否可以发消息
+async function getUserConsumeInfo(url: string, data: any): Promise<any> {
+  try {
+    const response = await axios.post(url, data);
+    if (response.status === 200) {
+      return { 'result': true, 'message': '' };
+    } else {
+      return { result: false, message: response.data.message };
+    }
+  } catch (error) {
+    console.error('Request error:', error);
+    return { 'result': false, 'message': error.response.data.message };
+  }
+}
+
 export async function POST({ request }: APIEvent) {
   try {
     const body: {
@@ -60,7 +76,7 @@ export async function POST({ request }: APIEvent) {
       model: Model
     } = await request.json()
     const { messages, key = localKey, temperature, password, model } = body
-
+    console.log(temperature)
     if (passwordSet && password !== passwordSet) {
       throw new Error("密码错误，请联系网站管理员。")
     }
@@ -90,6 +106,20 @@ export async function POST({ request }: APIEvent) {
 
     if (!apiKey) throw new Error("没有填写 OpenAI API key，或者 key 填写错误。")
 
+    const response = await getUserConsumeInfo('https://pay.llls.net.cn/order/orderConsume', {
+       userId:'6hi1tF9UtIge2EZByCNs'
+    });
+    if(!response.result){
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: response.message
+          }
+        }),
+        { status: 400 }
+      )
+    }
+    console.log('可以访问');
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
 
