@@ -51,7 +51,9 @@ const timeout = isNaN(+process.env.TIMEOUT!)
 
 const passwordSet = process.env.PASSWORD || defaultEnv.PASSWORD
 
-//先查询用户的订单，以及是否可以发消息
+
+
+//先查询用户的订单，以及是否可以发消息---
 async function getUserConsumeInfo(url: string, data: any): Promise<any> {
   try {
     const response = await axios.post(url, data);
