@@ -54,15 +54,24 @@ const passwordSet = process.env.PASSWORD || defaultEnv.PASSWORD
 //先查询用户的订单，以及是否可以发消息---
 async function getUserConsumeInfo(url: string, data: any): Promise<any> {
   try {
-    const response = await axios.post(url, data)
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+
     if (response.status === 200) {
+      const json = await response.json()
       return { result: true, message: "" }
     } else {
-      return { result: false, message: response.data.message }
+      const json = await response.json()
+      return { result: false, message: json.message }
     }
   } catch (error) {
     console.error("Request error:", error)
-    return { result: false, message: error }
+    return { result: false, message: "error" }
   }
 }
 
