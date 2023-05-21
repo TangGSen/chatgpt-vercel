@@ -65,7 +65,7 @@ async function getSTTResult(apiKey: string): Promise<any> {
     })
     const json = await response.json()
     const result = json.result
-    return { result: result }
+    return { result: json, json: "yyyyy" }
   } catch (error) {
     return { message: error, result: "出错了" }
   }
