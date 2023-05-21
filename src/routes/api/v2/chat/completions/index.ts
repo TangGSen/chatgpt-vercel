@@ -79,18 +79,16 @@ async function getSTTResult(apiKey: string): Promise<any> {
   try {
     const url =
       "https://firebasestorage.googleapis.com/v0/b/chatgpt-64bd1.appspot.com/o/test.wav?alt=media&token=7b572551-7e6e-47b0-bcbf-374ba8e6fb1b"
-    const data = { file: url, model: "whisper-1" }
-    const response = await fetch(
-      "https://api.openai.com/v1/audio/transcriptions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${apiKey}`
-        },
-        body: JSON.stringify(data)
+    const model = "whisper-1"
+    const apiUrl = `https://api.openai.com/v1/audio/transcriptions?file=${url}&model=${model}`
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${apiKey}`
       }
-    )
+    })
     const json = await response.json()
     const result = json.result
     return { result: json, json: "yyyyy" }
