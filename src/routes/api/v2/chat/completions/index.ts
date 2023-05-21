@@ -82,13 +82,25 @@ async function getSTTResult(apiKey: string): Promise<any> {
     const model = "whisper-1"
     const apiUrl = `https://api.openai.com/v1/audio/transcriptions?file=${url}&model=${model}`
 
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${apiKey}`
+    const formData = new FormData()
+    formData.append(
+      "file",
+      new Blob([await fetch(url).then(res => res.arrayBuffer())], {
+        type: "audio/wav"
+      }),
+      "test.wav"
+    )
+    formData.append("model", model)
+    const response = await fetch(
+      "https://api.openai.com/v1/audio/transcriptions",
+      {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${apiKey}`
+        }
       }
-    })
+    )
     const json = await response.json()
     const result = json.result
     return { result: json, json: "yyyyy" }
