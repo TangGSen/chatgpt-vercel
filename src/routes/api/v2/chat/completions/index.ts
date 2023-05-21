@@ -4,6 +4,7 @@ import type { ChatMessage, Model } from "~/types"
 import { splitKeys, randomKey, fetchWithTimeout } from "~/utils"
 import { defaultEnv } from "~/env"
 import type { APIEvent } from "solid-start/api"
+import axios from "axios"
 
 export const config = {
   runtime: "edge",
@@ -50,6 +51,51 @@ const timeout = isNaN(+process.env.TIMEOUT!)
 
 const passwordSet = process.env.PASSWORD || defaultEnv.PASSWORD
 
+//先查询用户的订单，以及是否可以发消息---
+async function getUserConsumeInfo(url: string, data: any): Promise<any> {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+
+    if (response.status === 200) {
+      const json = await response.json()
+      return { result: true, message: "" }
+    } else {
+      const json = await response.json()
+      return { result: false, message: json.message }
+    }
+  } catch (error) {
+    console.error("Request error:", error)
+    return { result: false, message: "error" }
+  }
+}
+
+async function getSTTResult(apiKey: string): Promise<any> {
+  try {
+    const url =
+      "https://firebasestorage.googleapis.com/v0/b/chatgpt-64bd1.appspot.com/o/test.wav?alt=media&token=7b572551-7e6e-47b0-bcbf-374ba8e6fb1b"
+    const data = { audio: url }
+    const response = await fetch("https://api.openai.com/v1/whisper", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(data)
+    })
+    const json = await response.json()
+    const result = json.result
+    return { result: json, json: "yyyyy" }
+  } catch (error) {
+    return { message: error, result: "出错了" }
+  }
+}
+
 export async function POST({ request }: APIEvent) {
   try {
     const body: {
@@ -60,7 +106,7 @@ export async function POST({ request }: APIEvent) {
       model: Model
     } = await request.json()
     const { messages, key = localKey, temperature, password, model } = body
-
+    console.log(temperature)
     if (passwordSet && password !== passwordSet) {
       throw new Error("密码错误，请联系网站管理员。")
     }
@@ -90,6 +136,34 @@ export async function POST({ request }: APIEvent) {
 
     if (!apiKey) throw new Error("没有填写 OpenAI API key，或者 key 填写错误。")
 
+    const stt = await getSTTResult(apiKey)
+
+    return new Response(
+      JSON.stringify({
+        res: {
+          message: stt.result
+        }
+      }),
+      { status: 200 }
+    )
+
+    const response = await getUserConsumeInfo(
+      "https://pay.llls.net.cn/order/orderConsume",
+      {
+        userId: "6hi1tF9UtIge2EZByCNs"
+      }
+    )
+    if (!response.result) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: response.message
+          }
+        }),
+        { status: 400 }
+      )
+    }
+    console.log("可以访问")
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
 
@@ -137,10 +211,11 @@ export async function POST({ request }: APIEvent) {
               return
             }
             try {
-              const json = JSON.parse(data)
-              const text = json.choices[0].delta?.content
-              //              const queue = encoder.encode(JSON.stringify(json))
-              const queue = encoder.encode(text)
+              //              const json = JSON.parse(data)
+              //              json['linsen'] ='linsen';
+              //              const text = json.choices[0].delta?.content
+              const queue = encoder.encode("data: " + data + "\n")
+              //              const queue = encoder.encode(text)
               controller.enqueue(queue)
             } catch (e) {
               controller.error(e)
