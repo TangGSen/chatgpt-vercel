@@ -50,6 +50,27 @@ const timeout = isNaN(+process.env.TIMEOUT!)
 
 const passwordSet = process.env.PASSWORD || defaultEnv.PASSWORD
 
+async function getSTTResult(apiKey: string): Promise<any> {
+  try {
+    const url =
+      "https://firebasestorage.googleapis.com/v0/b/chatgpt-64bd1.appspot.com/o/test.wav?alt=media&token=7b572551-7e6e-47b0-bcbf-374ba8e6fb1b"
+    const data = { audio: url }
+    const response = await fetch("https://api.openai.com/v1/whisper", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(data)
+    })
+    const json = await response.json()
+    const result = json.result
+    return { result: result }
+  } catch (error) {
+    return { message: error, result: "出错了" }
+  }
+}
+
 export async function POST({ request }: APIEvent) {
   try {
     const body: {
@@ -89,6 +110,17 @@ export async function POST({ request }: APIEvent) {
     const apiKey = randomKey(splitKeys(key))
 
     if (!apiKey) throw new Error("没有填写 OpenAI API key，或者 key 填写错误。")
+
+    const stt = await getSTTResult(apiKey)
+
+    return new Response(
+      JSON.stringify({
+        res: {
+          message: stt.result
+        }
+      }),
+      { status: 200 }
+    )
 
     const encoder = new TextEncoder()
     const decoder = new TextDecoder()
@@ -139,7 +171,7 @@ export async function POST({ request }: APIEvent) {
             try {
               const json = JSON.parse(data)
               const text = json.choices[0].delta?.content
-//              const queue = encoder.encode(JSON.stringify(json))
+              //              const queue = encoder.encode(JSON.stringify(json))
               const queue = encoder.encode(text)
               controller.enqueue(queue)
             } catch (e) {
