@@ -114,7 +114,7 @@ async function getSTTResultV2(apiKey: string): Promise<any> {
     const url =
       "https://firebasestorage.googleapis.com/v0/b/chatgpt-64bd1.appspot.com/o/test.wav?alt=media&token=7b572551-7e6e-47b0-bcbf-374ba8e6fb1b"
     const model = "whisper-1"
-    const apiUrl = `https://api.openai.com/v1/audio/transcriptions?url=${url}`
+    const apiUrl = `https://api.openai.com/v1/audio/transcriptions?url=${url}&model=${model}`
 
     // const formData = new FormData()
     // formData.append(
