@@ -109,6 +109,39 @@ async function getSTTResult(apiKey: string): Promise<any> {
   }
 }
 
+async function getSTTResultV2(apiKey: string): Promise<any> {
+  try {
+    const url =
+      "https://firebasestorage.googleapis.com/v0/b/chatgpt-64bd1.appspot.com/o/test.wav?alt=media&token=7b572551-7e6e-47b0-bcbf-374ba8e6fb1b"
+    const model = "whisper-1"
+    const apiUrl = `https://api.openai.com/v1/audio/transcriptions?url=${url}`
+
+    // const formData = new FormData()
+    // formData.append(
+    //   "file",
+    //   new Blob([await fetch(url).then(res => res.arrayBuffer())], {
+    //     type: "audio/wav"
+    //   }),
+    //   "test.wav"
+    // )
+    // formData.append("model", model)
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        model
+      }),
+      headers: {
+        Authorization: `Bearer ${apiKey}`
+      }
+    })
+    const json = await response.json()
+    const result = json.result
+    return { result: json, json: "yyyyy" }
+  } catch (error) {
+    return { message: error, result: "出错了" }
+  }
+}
+
 export async function POST({ request }: APIEvent) {
   try {
     const body: {
@@ -149,7 +182,7 @@ export async function POST({ request }: APIEvent) {
 
     if (!apiKey) throw new Error("没有填写 OpenAI API key，或者 key 填写错误。")
 
-    const stt = await getSTTResult(apiKey)
+    const stt = await getSTTResultV2(apiKey)
 
     return new Response(
       JSON.stringify({
