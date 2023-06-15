@@ -1,4 +1,5 @@
 import { type SessionSettings } from "./env"
+
 export const enum LocalStorageKey {
   GLOBALSETTINGS = "gpt-global-settings",
   THEME = "gpt-theme",
